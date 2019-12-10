@@ -1,5 +1,5 @@
 module Final where
-import System.IO(Handle, hGetLine, hIsEOF, withFile, IOMode(ReadMode)) -- hIsEOF, hGetLine, withFile, IOMode(ReadMode)
+import System.IO(Handle, hGetLine, hIsEOF, withFile, IOMode(ReadMode)) 
 
 
 {-
@@ -24,3 +24,10 @@ import System.IO(Handle, hGetLine, hIsEOF, withFile, IOMode(ReadMode)) -- hIsEOF
  :l hw4
 
 -}
+
+
+removeNonLetters :: String -> String
+removeNonLetters s = (filter (\x -> isAlpha x || isSpace x)) $ map toLower s
+
+getAsList:: String -> [(String, Int)]
+getAsList content =  toList $ fromListWith (+) $ Prelude.map (\a -> (removeNonLetters a,1)) $ words content
