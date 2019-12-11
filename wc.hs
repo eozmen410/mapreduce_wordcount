@@ -4,9 +4,10 @@ import Data.Char
 import Data.Map(fromListWith, toList)
 import qualified Data.ByteString.Lazy.Char8 as B
 import qualified Data.Map as Map
+import Data.List(sortBy)
+import Data.Function(on)
 import System.Environment(getArgs, getProgName)
 import System.Exit(die)
--- import System.IO(readFile)
 
 {-
 
@@ -47,11 +48,16 @@ main = do
             putStrLn "par"
         [filename, "seq"] -> do
             content <- B.readFile filename
-            print $ wcseq content
+            -- sort
+            print $ take 10 $ mySort $ wcseq content
+            -- no sort
+            -- print $ take 10 $ wcseq content
         _ -> do 
             pn <- getProgName
             die $ "Usage: " ++ pn ++ " <filename> <par/seq>"
         
+mySort :: Ord b => [(a,b)] -> [(a,b)]
+mySort = sortBy (flip compare `on` snd)
 
 wcseq :: B.ByteString -> [(B.ByteString, Int)]
 wcseq s = reduce . map wcmap . chunk 64 $ map removeNonLetters $ B.words s 
