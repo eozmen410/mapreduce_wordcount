@@ -21,6 +21,12 @@ import System.Exit(die)
 
  [Description]
 
+ to compile:
+ stack ghc -- -O2 -Wall -rtsopts wc
+
+ to run:
+ ./wc big.txt seq +RTS -s
+
  -----
 
  Use lts-14.5 as the "resolver" for the Haskell Tool Stack.
@@ -41,7 +47,7 @@ main = do
             putStrLn "par"
         [filename, "seq"] -> do
             content <- B.readFile filename
-            putStrLn "seq"
+            print $ wcseq content
         _ -> do 
             pn <- getProgName
             die $ "Usage: " ++ pn ++ " <filename> <par/seq>"
