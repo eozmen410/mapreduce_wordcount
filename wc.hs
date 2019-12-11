@@ -1,6 +1,5 @@
 {-# LANGUAGE TupleSections #-}
 
-module Final where
 import Data.Char
 import Data.Map(fromListWith, toList)
 import qualified Data.ByteString.Lazy.Char8 as B
