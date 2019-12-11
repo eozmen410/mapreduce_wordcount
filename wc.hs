@@ -5,7 +5,10 @@ import Data.Char
 import Data.Map(fromListWith, toList)
 import Data.ByteString(ByteString)
 import qualified Data.ByteString.Char8 as C
-
+import qualified Data.Map as Map
+import System.Environment(getArgs, getProgName)
+import System.Exit(die)
+import System.IO(readFile)
 
 {-
 
@@ -31,13 +34,29 @@ import qualified Data.ByteString.Char8 as C
 -}
 
 -- have main function take two parameters: name of file and whether seq or par
+main :: IO()
+main = do 
+    args <- getArgs
+    case args of 
+        [filename, "par"] -> do
+            content <- readFile filename
+            putStrLn "par"
+        [filename, "seq"] -> do
+            content <- readFile filename
+            putStrLn "seq"
+        _ -> do 
+            pn <- getProgName
+            die $ "Usage: " ++ pn ++ " <filename> <par/seq>"
+        
+
+
 
 -- take 1 chunk at a time of bytestrings and call map
 wcmap :: [ByteString] -> [(ByteString, Int)]
 wcmap = map (, 1) 
 
 reduce :: [[(ByteString, Int)]] -> [(ByteString, Int)]
-reduce _ = error "hi"
+reduce  = Map.toList . Map.fromListWith (+) . concat 
 
 
 split :: Int -> [a] -> [[a]]
