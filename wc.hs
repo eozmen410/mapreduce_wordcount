@@ -1,8 +1,8 @@
 module Final where
 import Data.Char
 import Data.Map(fromListWith, toList)
-import Data.ByteString(ByteString)
-
+import qualified Data.ByteString as BS--(ByteString)
+import qualified Data.ByteString.Char8 as C
 
 {-
 
@@ -29,9 +29,9 @@ import Data.ByteString(ByteString)
 
 -- have main function take two parameters: name of file and whether seq or par
 
--- take 1 chunk at a time of bytestrings and call map 
-map :: [ByteString] -> [(ByteString, Int)]
-map = map (, 1) 
+-- take 1 chunk at a time of bytestrings and call map and reduce on each and add up results
+-- map :: [BS.ByteString] -> [(BS.ByteString, Int)]
+-- map = map (, 1) 
 
 reduce :: [[(ByteString, Int)]] -> [(ByteString, Int)]
 reduce _ = error "hi"
@@ -47,8 +47,8 @@ chunk n xs = let (as,bs) = splitAt n xs in as : chunk n bs
 removeNonLetters :: ByteString -> ByteString
 removeNonLetters bs = filter (\x -> isAlpha x || isSpace x) $ map toLower bs
 
-removeNonLetters :: String -> String
-removeNonLetters s = filter (\x -> isAlpha x || isSpace x) $ map toLower s
+removeNonLetters :: BS.ByteString -> BS.ByteString
+removeNonLetters s = filter (\x -> isAlpha x || isSpace x) $ BS.map C.toLower s
 
-getAsList:: String -> [(String, Int)]
-getAsList content =  toList $ fromListWith (+) $ Prelude.map (\a -> (removeNonLetters a,1)) $ words content
+getAsList:: BS.ByteString -> [(BS.ByteString, Int)]
+getAsList content =  toList $ fromListWith (+) $ Prelude.map (\a -> (removeNonLetters a,1)) $ C.words content
