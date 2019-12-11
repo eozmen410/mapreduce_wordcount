@@ -29,9 +29,9 @@ import Data.ByteString(ByteString)
 
 -- have main function take two parameters: name of file and whether seq or par
 
--- take chunks of bytestrings and call map and reduce on each and add up results
-wc :: [[ByteString]] -> [(ByteString, Int)]
-wc _ = error "Solution"
+-- take 1 chunk at a time of bytestrings and call map and reduce on each and add up results
+map :: [ByteString] -> [(ByteString, Int)]
+map = map (, 1) 
 
 
 
