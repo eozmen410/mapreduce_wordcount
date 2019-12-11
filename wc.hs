@@ -8,7 +8,7 @@ import qualified Data.ByteString.Char8 as C
 import qualified Data.Map as Map
 import System.Environment(getArgs, getProgName)
 import System.Exit(die)
-import System.IO(readFile)
+-- import System.IO(readFile)
 
 {-
 
@@ -39,10 +39,10 @@ main = do
     args <- getArgs
     case args of 
         [filename, "par"] -> do
-            content <- readFile filename
+            content <- C.readFile filename
             putStrLn "par"
         [filename, "seq"] -> do
-            content <- readFile filename
+            content <- C.readFile filename
             putStrLn "seq"
         _ -> do 
             pn <- getProgName
