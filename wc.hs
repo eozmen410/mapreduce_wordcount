@@ -47,7 +47,8 @@ main = do
             die $ "Usage: " ++ pn ++ " <filename> <par/seq>"
         
 
-
+wcseq :: B.ByteString -> [(B.ByteString, Int)]
+wcseq s = reduce . map wcmap . chunk 64 $ map removeNonLetters $ B.words s 
 
 -- take 1 chunk at a time of bytestrings and call map
 wcmap :: [B.ByteString] -> [(B.ByteString, Int)]
