@@ -1,5 +1,7 @@
 module Final where
-import System.IO(Handle, hGetLine, hIsEOF, withFile, IOMode(ReadMode)) 
+import Data.Char
+import Data.Map(fromListWith, toList)
+import Data.ByteString(ByteString)
 
 
 {-
@@ -25,9 +27,26 @@ import System.IO(Handle, hGetLine, hIsEOF, withFile, IOMode(ReadMode))
 
 -}
 
+-- have main function take two parameters: name of file and whether seq or par
+
+-- take chunks of bytestrings and call map and reduce on each and add up results
+wc :: [[ByteString]] -> [(ByteString, Int)]
+wc _ = error "Solution"
+
+
+
+split :: Int -> [a] -> [[a]]
+split nChunks xs = chunk (length xs `quot` nChunks) xs
+
+chunk :: Int -> [a] -> [[a]]
+chunk _ [] = []
+chunk n xs = let (as,bs) = splitAt n xs in as : chunk n bs
+
+
 
 removeNonLetters :: String -> String
-removeNonLetters s = (filter (\x -> isAlpha x || isSpace x)) $ map toLower s
+removeNonLetters s = filter (\x -> isAlpha x || isSpace x) $ map toLower s
 
 getAsList:: String -> [(String, Int)]
 getAsList content =  toList $ fromListWith (+) $ Prelude.map (\a -> (removeNonLetters a,1)) $ words content
+
