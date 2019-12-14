@@ -1,5 +1,7 @@
 {-# LANGUAGE TupleSections #-}
 
+import Control.Parallel(pseq)
+import Control.Parallel.Strategies
 import Data.Char
 import Data.Map(fromListWith, toList)
 import qualified Data.ByteString.Lazy.Char8 as B
@@ -96,7 +98,7 @@ seqMapReduce
     -> ([b] -> c)  -- reduce func
     -> [a]         -- init list
     -> c
-
+seqMapReduce mf rf = rf . map mf
 
 parMapReduce
     :: Strategy b  -- for mapping
@@ -105,3 +107,7 @@ parMapReduce
     -> ([b] -> c)  -- reduce func
     -> [a]         -- init list
     -> c
+parMapReduce mstrat mf rstrat rf xs =
+    mres `pseq` rres
+  where mres = parMap mstrat mf xs
+        rres = rf mres `using` rstrat
