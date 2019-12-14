@@ -62,34 +62,23 @@ mySort :: Ord b => [(a,b)] -> [(a,b)]
 mySort = sortBy (flip compare `on` snd)
 
 wcseq :: B.ByteString -> [(B.ByteString, Int)]
-wcseq s = reduce . map wcmap . chunk 64 $ map removeNonLetters $ B.words s 
+wcseq s = wcreduce . map wcmap . chunk 64 $ map removeNonLetters $ B.words s 
 
 -- take 1 chunk at a time of bytestrings and call map
 wcmap :: [B.ByteString] -> [(B.ByteString, Int)]
 wcmap = map (, 1) 
 
-reduce :: [[(B.ByteString, Int)]] -> [(B.ByteString, Int)]
-reduce  = Map.toList . Map.fromListWith (+) . concat 
+wcreduce :: [[(B.ByteString, Int)]] -> [(B.ByteString, Int)]
+wcreduce  = Map.toList . Map.fromListWith (+) . concat 
 
-
-split :: Int -> [a] -> [[a]]
-split nChunks xs = chunk (length xs `quot` nChunks) xs
-
-chunk :: Int -> [a] -> [[a]]
-chunk _ [] = []
-chunk n xs = let (as,bs) = splitAt n xs in as : chunk n bs
-
-removeNonLetters :: B.ByteString -> B.ByteString
-removeNonLetters s = B.filter (\x -> isAlpha x || isSpace x) $ B.map toLower s
 
 getAsList:: B.ByteString -> [(B.ByteString, Int)]
 getAsList content =  toList $ fromListWith (+) $ map (\a -> (removeNonLetters a,1)) $ B.words content
 
 
 
-
-
-
+wcseqT1 :: B.ByteString -> [(B.ByteString, Int)]
+wcseqT1 = seqMapReduce wcmap wcreduce . chunk 8 . cleanWords
 
 
 
@@ -111,3 +100,22 @@ parMapReduce mstrat mf rstrat rf xs =
     mres `pseq` rres
   where mres = parMap mstrat mf xs
         rres = rf mres `using` rstrat
+
+
+
+-- Helper functions
+
+split :: Int -> [a] -> [[a]]
+split nChunks xs = chunk (length xs `quot` nChunks) xs
+
+chunk :: Int -> [a] -> [[a]]
+chunk _ [] = []
+chunk n xs = let (as,bs) = splitAt n xs in as : chunk n bs
+
+cleanWords :: B.ByteString -> [B.ByteString]
+cleanWords = map removeNonLetters . B.words
+
+removeNonLetters :: B.ByteString -> B.ByteString
+removeNonLetters = B.filter (\x -> isAlpha x || isSpace x) . B.map toLower
+
+
