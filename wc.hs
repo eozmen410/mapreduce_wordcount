@@ -2,10 +2,9 @@
 
 import Control.Parallel(pseq)
 import Control.Parallel.Strategies
-import Data.Char
+import Data.Char(isAlpha, isSpace, toLower)
 import Data.Map(fromListWith, toList)
 import qualified Data.ByteString.Lazy.Char8 as B
-import qualified Data.Map as Map
 import Data.List(sortBy)
 import Data.Function(on)
 import System.Environment(getArgs, getProgName)
@@ -51,42 +50,23 @@ main = do
         [filename, "seq"] -> do
             content <- B.readFile filename
             -- sort
-            print $ take 10 $ mySort $ wcseq content
+            print $ take 10 $ sort $ wcseq content
             -- no sort
             -- print $ take 10 $ wcseq content
         _ -> do 
             pn <- getProgName
             die $ "Usage: " ++ pn ++ " <filename> <par/seq>"
         
-mySort :: Ord b => [(a,b)] -> [(a,b)]
-mySort = sortBy (flip compare `on` snd)
-
 wcseq :: B.ByteString -> [(B.ByteString, Int)]
-wcseq s = wcreduce . map wcmap . chunk 64 $ map removeNonLetters $ B.words s 
+wcseq = seqMapReduce wcmap wcreduce . split 16 . cleanWords
 
--- take 1 chunk at a time of bytestrings and call map
 wcmap :: [B.ByteString] -> [(B.ByteString, Int)]
 wcmap = map (, 1) 
 
 wcreduce :: [[(B.ByteString, Int)]] -> [(B.ByteString, Int)]
-wcreduce  = Map.toList . Map.fromListWith (+) . concat 
+wcreduce  = toList . fromListWith (+) . concat 
 
-
-getAsList:: B.ByteString -> [(B.ByteString, Int)]
-getAsList content =  toList $ fromListWith (+) $ map (\a -> (removeNonLetters a,1)) $ B.words content
-
-
-
-wcseqT1 :: B.ByteString -> [(B.ByteString, Int)]
-wcseqT1 = seqMapReduce wcmap wcreduce . chunk 8 . cleanWords
-
-
-
-seqMapReduce 
-    :: (a   -> b)  -- map func
-    -> ([b] -> c)  -- reduce func
-    -> [a]         -- init list
-    -> c
+seqMapReduce :: (a   -> b) -> ([b] -> c) -> [a] -> c
 seqMapReduce mf rf = rf . map mf
 
 parMapReduce
@@ -102,8 +82,10 @@ parMapReduce mstrat mf rstrat rf xs =
         rres = rf mres `using` rstrat
 
 
-
 -- Helper functions
+
+sort :: Ord b => [(a,b)] -> [(a,b)]
+sort = sortBy (flip compare `on` snd)
 
 split :: Int -> [a] -> [[a]]
 split nChunks xs = chunk (length xs `quot` nChunks) xs
@@ -117,5 +99,3 @@ cleanWords = map removeNonLetters . B.words
 
 removeNonLetters :: B.ByteString -> B.ByteString
 removeNonLetters = B.filter (\x -> isAlpha x || isSpace x) . B.map toLower
-
-
