@@ -3,7 +3,7 @@
 import Control.Parallel(pseq)
 import Control.Parallel.Strategies
 import Data.Char(isAlpha, isSpace, toLower)
-import Data.Map(fromListWith, toList)
+import Data.Map(Map, fromListWith, toList, unionsWith)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.List(sortBy)
 import Data.Function(on)
@@ -46,7 +46,8 @@ main = do
     case args of 
         [filename, "par"] -> do
             content <- B.readFile filename
-            print $ take 10 $ sort $ wcpar content
+            print $ length $ wcpar content
+            -- print $ take 10 $ sort $ wcpar content
         [filename, "seq"] -> do
             content <- B.readFile filename
             print $ take 10 $ sort $ wcseq content
@@ -58,13 +59,20 @@ wcseq :: B.ByteString -> [(B.ByteString, Int)]
 wcseq = seqMapReduce wcmap wcreduce . split 16 . cleanWords
 
 wcpar :: B.ByteString -> [(B.ByteString, Int)]
-wcpar = parMapReduce rdeepseq wcmap rdeepseq wcreduce . split 32 . cleanWords
+wcpar = toList . unionsWith (+) . parMapReduce rdeepseq wcmap rdeepseq parwcreduce . split 64 . cleanWords
 
 wcmap :: [B.ByteString] -> [(B.ByteString, Int)]
 wcmap = map (, 1) 
 
+parwcreduce :: [(B.ByteString, Int)] -> Map B.ByteString Int
+parwcreduce = fromListWith (+)
+
 wcreduce :: [[(B.ByteString, Int)]] -> [(B.ByteString, Int)]
 wcreduce  = toList . fromListWith (+) . concat 
+
+-- wcreduceChunk :: [(B.ByteString, Int)] -> [(B.ByteString, Int)]
+-- wcreduceChunk  = toList . fromListWith (+)
+
 
 seqMapReduce :: (a   -> b) -> ([b] -> c) -> [a] -> c
 seqMapReduce mf rf = rf . map mf
@@ -73,13 +81,14 @@ parMapReduce
     :: Strategy b  -- for mapping
     -> (a   -> b)  -- map func
     -> Strategy c  -- for reducing
-    -> ([b] -> c)  -- reduce func
+    -> (b -> c)  -- reduce func
     -> [a]         -- init list
-    -> c
+    -> [c]
 parMapReduce mstrat mf rstrat rf xs =
     mres `pseq` rres
   where mres = parMap mstrat mf xs
-        rres = rf mres `using` rstrat
+        rres = parMap rstrat rf mres  -- [[(B.ByteString, Int)]] 
+
 
 
 -- Helper functions
