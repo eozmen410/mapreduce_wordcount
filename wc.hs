@@ -82,3 +82,26 @@ removeNonLetters s = B.filter (\x -> isAlpha x || isSpace x) $ B.map toLower s
 
 getAsList:: B.ByteString -> [(B.ByteString, Int)]
 getAsList content =  toList $ fromListWith (+) $ map (\a -> (removeNonLetters a,1)) $ B.words content
+
+
+
+
+
+
+
+
+
+seqMapReduce 
+    :: (a   -> b)  -- map func
+    -> ([b] -> c)  -- reduce func
+    -> [a]         -- init list
+    -> c
+
+
+parMapReduce
+    :: Strategy b  -- for mapping
+    -> (a   -> b)  -- map func
+    -> Strategy c  -- for reducing
+    -> ([b] -> c)  -- reduce func
+    -> [a]         -- init list
+    -> c
