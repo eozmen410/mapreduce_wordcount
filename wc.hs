@@ -59,21 +59,25 @@ wcseq :: B.ByteString -> [(B.ByteString, Int)]
 wcseq = seqMapReduce wcmap wcreduce . split 16 . cleanWords
 
 wcpar :: B.ByteString -> [(B.ByteString, Int)]
-wcpar = toList . unionsWith (+) . parMapReduce rdeepseq wcmap rdeepseq parwcreduce . split 64 . cleanWords
+wcpar = finalreduce . parMapReduce rdeepseq wcmap rdeepseq parwcreduce . split 64 . cleanWords
 
+-- wc helper functions
+--
 wcmap :: [B.ByteString] -> [(B.ByteString, Int)]
 wcmap = map (, 1) 
 
 parwcreduce :: [(B.ByteString, Int)] -> Map B.ByteString Int
 parwcreduce = fromListWith (+)
 
+finalreduce :: [Map B.ByteString Int] -> [(B.ByteString, Int)]
+finalreduce = toList . unionsWith (+)
+
 wcreduce :: [[(B.ByteString, Int)]] -> [(B.ByteString, Int)]
 wcreduce  = toList . fromListWith (+) . concat 
 
--- wcreduceChunk :: [(B.ByteString, Int)] -> [(B.ByteString, Int)]
--- wcreduceChunk  = toList . fromListWith (+)
 
-
+-- map reduce library
+--
 seqMapReduce :: (a   -> b) -> ([b] -> c) -> [a] -> c
 seqMapReduce mf rf = rf . map mf
 
@@ -92,7 +96,7 @@ parMapReduce mstrat mf rstrat rf xs =
 
 
 -- Helper functions
-
+--
 sort :: Ord b => [(a,b)] -> [(a,b)]
 sort = sortBy (flip compare `on` snd)
 
