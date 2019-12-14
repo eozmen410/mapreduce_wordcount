@@ -46,19 +46,19 @@ main = do
     case args of 
         [filename, "par"] -> do
             content <- B.readFile filename
-            putStrLn "par"
+            print $ take 10 $ sort $ wcpar content
         [filename, "seq"] -> do
             content <- B.readFile filename
-            -- sort
             print $ take 10 $ sort $ wcseq content
-            -- no sort
-            -- print $ take 10 $ wcseq content
         _ -> do 
             pn <- getProgName
             die $ "Usage: " ++ pn ++ " <filename> <par/seq>"
         
 wcseq :: B.ByteString -> [(B.ByteString, Int)]
 wcseq = seqMapReduce wcmap wcreduce . split 16 . cleanWords
+
+wcpar :: B.ByteString -> [(B.ByteString, Int)]
+wcpar = parMapReduce rdeepseq wcmap rdeepseq wcreduce . split 32 . cleanWords
 
 wcmap :: [B.ByteString] -> [(B.ByteString, Int)]
 wcmap = map (, 1) 
