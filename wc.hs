@@ -59,7 +59,7 @@ wcseq :: B.ByteString -> [(B.ByteString, Int)]
 wcseq = seqMapReduce wcmap wcreduce . split 16 . cleanWords
 
 wcpar :: B.ByteString -> [(B.ByteString, Int)]
-wcpar = finalreduce . parMapReduce rdeepseq wcmap rdeepseq parwcreduce . split 64 . cleanWords
+wcpar = finalreduce . parMapReduce rdeepseq wcmap rdeepseq parwcreduce . split 100 . cleanWords
 
 -- wc helper functions
 --
@@ -90,8 +90,8 @@ parMapReduce
     -> [c]
 parMapReduce mstrat mf rstrat rf xs =
     mres `pseq` rres
-  where mres = parMap mstrat mf xs
-        rres = parMap rstrat rf mres  -- [[(B.ByteString, Int)]] 
+  where mres = map mf xs `using` (parBuffer 100 mstrat)
+        rres = map rf mres `using` (parBuffer 100 rstrat)  -- [[(B.ByteString, Int)]] 
 
 
 
