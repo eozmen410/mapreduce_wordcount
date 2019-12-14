@@ -23,10 +23,10 @@ import System.Exit(die)
  [Description]
 
  to compile:
- stack ghc -- -O2 -Wall -rtsopts wc
+ stack ghc -- -O2 -Wall -threaded -rtsopts -eventlog wc
 
  to run:
- ./wc big.txt seq +RTS -s
+ ./wc big.txt seq +RTS -N8 -ls
 
  -----
 
