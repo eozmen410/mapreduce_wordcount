@@ -2,7 +2,7 @@
 
 import Control.Parallel(pseq)
 import Control.Parallel.Strategies
-import Data.Char(isAlpha, isSpace, toLower)
+import Data.Char(isAlpha, toLower)
 import Data.Map(Map, fromListWith, toList, unionsWith)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.List(sortBy)
@@ -46,8 +46,7 @@ main = do
     case args of 
         [filename, "par"] -> do
             content <- B.readFile filename
-            print $ length $ wcpar content
-            -- print $ take 10 $ sort $ wcpar content
+            print $ take 10 $ sort $ wcpar content
         [filename, "seq"] -> do
             content <- B.readFile filename
             print $ take 10 $ sort $ wcseq content
@@ -56,10 +55,10 @@ main = do
             die $ "Usage: " ++ pn ++ " <filename> <par/seq>"
         
 wcseq :: B.ByteString -> [(B.ByteString, Int)]
-wcseq = seqMapReduce wcmap wcreduce . split 16 . cleanWords
+wcseq = seqMapReduce wcmap wcreduce . split 10000
 
 wcpar :: B.ByteString -> [(B.ByteString, Int)]
-wcpar = finalreduce . parMapReduce rdeepseq wcmap rdeepseq parwcreduce . split 100 . cleanWords
+wcpar = finalreduce . parMapReduce rdeepseq wcmap rdeepseq parwcreduce . split 10000
 
 -- wc helper functions
 --
@@ -90,9 +89,8 @@ parMapReduce
     -> [c]
 parMapReduce mstrat mf rstrat rf xs =
     mres `pseq` rres
-  where mres = map mf xs `using` (parBuffer 100 mstrat)
-        rres = map rf mres `using` (parBuffer 100 rstrat)  -- [[(B.ByteString, Int)]] 
-
+  where mres = map mf xs `using` parBuffer 100 mstrat
+        rres = map rf mres `using` parBuffer 100 rstrat  -- [[(B.ByteString, Int)]] 
 
 
 -- Helper functions
@@ -100,15 +98,12 @@ parMapReduce mstrat mf rstrat rf xs =
 sort :: Ord b => [(a,b)] -> [(a,b)]
 sort = sortBy (flip compare `on` snd)
 
-split :: Int -> [a] -> [[a]]
-split nChunks xs = chunk (length xs `quot` nChunks) xs
+split :: Int -> B.ByteString -> [[B.ByteString]]
+split n bs = chunk n $ map removeNonLetters $ B.words bs
 
 chunk :: Int -> [a] -> [[a]]
 chunk _ [] = []
 chunk n xs = let (as,bs) = splitAt n xs in as : chunk n bs
 
-cleanWords :: B.ByteString -> [B.ByteString]
-cleanWords = map removeNonLetters . B.words
-
 removeNonLetters :: B.ByteString -> B.ByteString
-removeNonLetters = B.filter (\x -> isAlpha x || isSpace x) . B.map toLower
+removeNonLetters = B.filter isAlpha . B.map toLower
