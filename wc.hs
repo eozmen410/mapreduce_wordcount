@@ -3,7 +3,7 @@
 import Control.Parallel(pseq)
 import Control.Parallel.Strategies
 import Data.Char(isAlpha, toLower)
-import Data.Map(Map, fromListWith, toList, unionsWith)
+import Data.Map(Map, keys, fromListWith, toList, unionsWith)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.List(sortBy)
 import Data.Function(on)
@@ -55,10 +55,10 @@ main = do
             die $ "Usage: " ++ pn ++ " <filename> <par/seq>"
         
 wcseq :: B.ByteString -> [(B.ByteString, Int)]
-wcseq = seqMapReduce wcmap wcreduce . split 10000
+wcseq = seqMapReduce wcmap wcreduce . split 100
 
 wcpar :: B.ByteString -> [(B.ByteString, Int)]
-wcpar = finalreduce . parMapReduce rdeepseq wcmap rdeepseq parwcreduce . split 10000
+wcpar = finalreduce . parMapReduce rdeepseq wcmap rdeepseq parwcreduce . split 100
 
 -- wc helper functions
 --
