@@ -39,7 +39,7 @@ main = do
     case args of 
         [filename] -> do
             content <- B.readFile filename
-            print $ length $ pipeline 10000 content 
+            print $ take 10 $ sort $ pipeline 10000 content 
         _ -> do 
             pn <- getProgName
             die $ "Usage: " ++ pn ++ " <filename>"
@@ -56,10 +56,10 @@ finalreduce = streamFold (unionWith (+)) empty
 
 pipeline :: Int -> B.ByteString -> [(B.ByteString, Int)]
 pipeline n bs = runPar $ do
-    s0 <- streamFromList (chunk n (map removeNonLetters (B.words bs))) -- stream of lists
-    s1 <- streamMap (runPar . streamFromList) s0 -- make stream of streams
-    s2 <- streamMap (runPar . wcmap) s1 -- gives stream of streams for reduce
-    s3 <- streamMap (runPar . wcreduce) s2 -- stream of maps
+    s0 <- streamFromList (chunk n (map removeNonLetters (B.words bs))) 
+    s1 <- streamMap (runPar . streamFromList) s0 --using runPar to unbox monad
+    s2 <- streamMap (runPar . wcmap) s1 
+    s3 <- streamMap (runPar . wcreduce) s2 
     s4 <- finalreduce s3
     return $ toList s4
 
@@ -74,4 +74,7 @@ removeNonLetters = B.filter isAlpha . B.map toLower
 
 insertTuple :: Map B.ByteString Int -> (B.ByteString, Int) -> Map B.ByteString Int
 insertTuple m (k,v) = insert k v m
+
+sort :: Ord b => [(a,b)] -> [(a,b)]
+sort = sortBy (flip compare `on` snd)
 
