@@ -3,7 +3,7 @@
 import Control.Parallel(pseq)
 import Control.Parallel.Strategies
 import Data.Char(isAlpha, toLower)
-import Data.Map(Map, keys, fromListWith, toList, unionsWith)
+import Data.Map(Map, fromListWith, toList, unionsWith)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.List(sortBy)
 import Data.Function(on)
@@ -22,12 +22,12 @@ import System.Exit(die)
  Final Project: MapReduce Word Counter 
 
  to compile:
- stack ghc -- -O2 -Wall -threaded -rtsopts -eventlog wc
+ stack ghc -- -O2 -Wall -threaded -rtsopts -eventlog wc_eval
 
 to run sequantial word count:
- ./wc big.txt seq +RTS -N8 -ls (for sequential)
+ ./wc_eval big.txt seq +RTS -N4 -ls -s
 to run parallel word count:
- ./wc big.txt par +RTS -N8 -ls (for parallel)
+ ./wc_eval big.txt par +RTS -N4 -ls -s
 
 -}
 

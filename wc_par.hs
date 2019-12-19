@@ -1,9 +1,7 @@
 {-# LANGUAGE TupleSections #-}
 
-import Control.Parallel(pseq)
-import Control.Parallel.Strategies
 import Data.Char(isAlpha, toLower)
-import Data.Map(Map, keys, fromListWith, toList, unionWith, insert, empty)
+import Data.Map(Map, toList, unionWith, insert, empty)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.List(sortBy)
 import Data.Function(on)
@@ -24,10 +22,10 @@ import Control.Monad.Par
  Final Project: MapReduce Word Counter
 
  to compile:
- stack ghc -- -O2 -Wall -threaded -rtsopts -eventlog wc
+ stack ghc -- -O2 -Wall -threaded -rtsopts -eventlog wc_par
 
  to run:
- ./wc big.txt +RTS -N4 -ls
+ ./wc_par big.txt +RTS -N4 -ls -s
 
  -----
 
