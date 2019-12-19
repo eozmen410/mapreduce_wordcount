@@ -25,3 +25,7 @@ to compile:
  to run:
  ./wc big.txt +RTS -N4 -ls 
 
+Dependencies:
+ stack install parallel
+ stack install monad-par
+

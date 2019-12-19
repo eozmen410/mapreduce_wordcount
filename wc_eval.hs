@@ -24,21 +24,13 @@ import System.Exit(die)
  to compile:
  stack ghc -- -O2 -Wall -threaded -rtsopts -eventlog wc
 
- to run:
+to run sequantial word count:
  ./wc big.txt seq +RTS -N8 -ls (for sequential)
+to run parallel word count:
  ./wc big.txt par +RTS -N8 -ls (for parallel)
-
- -----
-
- Use lts-14.5 as the "resolver" for the Haskell Tool Stack.
-
- Your code should load under GHCi 8.6.5 with no warnings under -Wall, e.g.
- :set -Wall
- :l hw4
 
 -}
 
--- have main function take two parameters: name of file and whether seq or par
 main :: IO()
 main = do 
     args <- getArgs
