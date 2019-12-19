@@ -3,12 +3,15 @@
 import Control.Parallel(pseq)
 import Control.Parallel.Strategies
 import Data.Char(isAlpha, toLower)
-import Data.Map(Map, keys, fromListWith, toList, unionsWith)
+import Data.Map(Map, keys, fromListWith, toList, unionsWith, insert)
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.List(sortBy)
 import Data.Function(on)
 import System.Environment(getArgs, getProgName)
 import System.Exit(die)
+
+import Stream
+import Control.Monad.Par
 
 {-
 
@@ -46,19 +49,52 @@ main = do
     case args of 
         [filename, "par"] -> do
             content <- B.readFile filename
-            print $ take 10 $ sort $ wcpar content
+            print ""
+
+            -- print $ length $ withStrategy (parBuffer 100 rdeepseq) (map wcmap (chunk 10000 (map removeNonLetters $ B.words content)))
+            -- print $ take 10 $ sort $ wcpar content
         [filename, "seq"] -> do
             content <- B.readFile filename
-            print $ take 10 $ sort $ wcseq content
+            print "hi"
+            -- print $ take 10 $ sort $ wcseq content
         _ -> do 
             pn <- getProgName
             die $ "Usage: " ++ pn ++ " <filename> <par/seq>"
         
+
+
+
+
+wcmap :: Stream B.ByteString -> Par (Stream (B.ByteString, Int))
+wcmap = streamMap (\bs -> (bs, 1))
+
+wcreduce :: Stream (Stream (B.ByteString, Int)) -> Par (Stream (B.ByteString, Int))
+wcreduce = streamMap (streamFold insertTuple empty)
+
+insertTuple :: (B.ByteString, Int) -> Map B.ByteString Int -> Map B.ByteString Int
+insertTuple (k,v) = insert k v
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-
+
 wcseq :: B.ByteString -> [(B.ByteString, Int)]
 wcseq = seqMapReduce wcmap wcreduce . split 100
 
 wcpar :: B.ByteString -> [(B.ByteString, Int)]
-wcpar = finalreduce . parMapReduce rdeepseq wcmap rdeepseq parwcreduce . split 100
+wcpar = finalreduce . parMapReduce rseq wcmap rseq parwcreduce . split 100
 
 -- wc helper functions
 --
@@ -90,7 +126,7 @@ parMapReduce
 parMapReduce mstrat mf rstrat rf xs =
     mres `pseq` rres
   where mres = map mf xs `using` parBuffer 100 mstrat
-        rres = map rf mres `using` parBuffer 100 rstrat  -- [[(B.ByteString, Int)]] 
+        rres = map rf mres -- `using` parBuffer 100 rstrat  -- [[(B.ByteString, Int)]] 
 
 
 -- Helper functions
@@ -107,3 +143,5 @@ chunk n xs = let (as,bs) = splitAt n xs in as : chunk n bs
 
 removeNonLetters :: B.ByteString -> B.ByteString
 removeNonLetters = B.filter isAlpha . B.map toLower
+
+-}
